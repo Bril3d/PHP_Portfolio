@@ -5,22 +5,31 @@ require_once 'lib/portfolio.php';
 
 
 if(isset($_POST['description'])){
+    $pro_id = $_POST['pro_id'];
+
     $description = $_POST['description'];
+
+
+    if(isset($_FILES['img']['name'])){
     $tmp = $_FILES['img']['tmp_name'];
     $filename = $_FILES['img']['name'];
-    $user_id = $_SESSION['user']['id'];
     move_uploaded_file($tmp,"upload/".$filename);
-
-$res = addNewPor($filename,$description,$user_id);
+    }else{
+      $filename="";
+    }
+$res = updatePro($pro_id,$description,$filename);
 
 
 if($res == true){
-  $success = 'Project inserted';
+  header("LOCATION:allPortfolios.php");
 }else {
   $error = 'Project not inserted';
 }
 
-}
+}else {
+  $pro_id = $_GET['proid'];
+  $data = getPortfolioById($pro_id);
+ }
 
 
 
@@ -315,12 +324,15 @@ if($res == true){
               </div>
               <!-- /.card-header -->
               <!-- form start -->
-              <form action="portfolio.php" method="post" enctype="multipart/form-data">
+              <form action="updatePortfolio.php" method="post" enctype="multipart/form-data">
                 <div class="card-body">
                   <div class="form-group">
                   <label for="description">Description</label>
-                   <textarea  class="form-control textarea" name="description"></textarea>
+                   <textarea   class="form-control textarea" name="description"><?= $data['description'] ?></textarea>
                   </div>
+
+                  <img src="upload/<?= $data['img']?>" height="200px" alt="img">
+
                   <div class="form-group">
                     <label for="exampleInputFile">File input</label>
                     <div class="input-group">
@@ -331,6 +343,7 @@ if($res == true){
                       <div class="input-group-append">
                         <span class="input-group-text">Upload</span>
                       </div>
+                      <input type="hidden" name="pro_id" value="<?= $pro_id ?>">
                     </div>
                   </div>
                 
@@ -338,7 +351,7 @@ if($res == true){
                 <!-- /.card-body -->
 
                 <div class="card-footer">
-                  <button type="submit" class="btn btn-primary">Submit</button>
+                  <button type="submit" class="btn btn-primary">Update</button>
                 </div>
               </form>
             </div>

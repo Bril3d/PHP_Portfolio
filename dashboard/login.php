@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'lib/user.php';
+include_once 'lib/user.php';
 
 
 if(isset($_POST['email'])){

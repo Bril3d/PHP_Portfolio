@@ -2,25 +2,9 @@
 session_start();
 require_once 'lib/portfolio.php';
 
+$data = getPortfolio();
 
 
-if(isset($_POST['description'])){
-    $description = $_POST['description'];
-    $tmp = $_FILES['img']['tmp_name'];
-    $filename = $_FILES['img']['name'];
-    $user_id = $_SESSION['user']['id'];
-    move_uploaded_file($tmp,"upload/".$filename);
-
-$res = addNewPor($filename,$description,$user_id);
-
-
-if($res == true){
-  $success = 'Project inserted';
-}else {
-  $error = 'Project not inserted';
-}
-
-}
 
 
 
@@ -53,6 +37,9 @@ if($res == true){
   <link rel="stylesheet" href="backassets/plugins/daterangepicker/daterangepicker.css">
   <!-- summernote -->
   <link rel="stylesheet" href="backassets/plugins/summernote/summernote-bs4.min.css">
+  <link rel="stylesheet" href="backassets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="backassets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <link rel="stylesheet" href="backassets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
@@ -247,7 +234,7 @@ if($res == true){
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="./index.html" class="nav-link active">
+                <a href="./portfolio.php" class="nav-link active">
                   <i class="far fa-circle nav-icon"></i>
                   <p>Portfolio</p>
                 </a>
@@ -299,49 +286,38 @@ if($res == true){
       <div class="container-fluid">
         <!-- Small boxes (Stat box) -->
         <h1>Portfolio</h1>
-        <?php if(isset($success) OR isset($error)):  ?>
-        <div class="alert <?php if(isset($success)): ?> alert-success <?php else: ?>alert-danger <?php endif; ?> alert-dismissible">
-                  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                  <h5><i class="icon fas fa-ban"></i> Alert!</h5>
-                 <ul>
-                    <li><?php echo (isset($success)) ? $success : $error  ?></li>
-                  
-                 </ul>
-</div>
-<?php endif; ?>
+
+
         <div class="card card-primary">
               <div class="card-header">
                 <h3 class="card-title">Quick Example</h3>
               </div>
               <!-- /.card-header -->
-              <!-- form start -->
-              <form action="portfolio.php" method="post" enctype="multipart/form-data">
-                <div class="card-body">
-                  <div class="form-group">
-                  <label for="description">Description</label>
-                   <textarea  class="form-control textarea" name="description"></textarea>
-                  </div>
-                  <div class="form-group">
-                    <label for="exampleInputFile">File input</label>
-                    <div class="input-group">
-                      <div class="custom-file">
-                        <input type="file" name="img" class="custom-file-input" id="exampleInputFile">
-                        <label class="custom-file-label" for="exampleInputFile">Choose file</label>
-                      </div>
-                      <div class="input-group-append">
-                        <span class="input-group-text">Upload</span>
-                      </div>
-                    </div>
-                  </div>
-                
-                </div>
-                <!-- /.card-body -->
-
-                <div class="card-footer">
-                  <button type="submit" class="btn btn-primary">Submit</button>
-                </div>
-              </form>
-            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <table id="example1" class="table table-bordered table-striped">
+                  <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th>User</th>
+                    <th>Img</th>
+                    <th>Update</th>
+                    <th>Delete</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                    <?php forEach($data as $project): ?>
+                  <tr>
+                    <td><?= $project['description']; ?></td>
+                    <td><?= $project['name']; ?></td>
+                    <td><img src="upload/<?=$project['img'];?>" height=200; alt="img"> </td>
+                    <td><a href="updatePortfolio.php?proid=<?= $project['id'] ?>" class="btn btn-warning">Update</a></td>
+                    <td><a href="deletePortfolio.php?proid=<?= $project['id'] ?>" class="btn btn-danger">Delete</td>
+                  </tr>
+                  <?php endforeach ?>
+                </table>
+              </div>
+              <!-- /.card-body -->
         <!-- /.row (main row) -->
       </div><!-- /.container-fluid -->
     </section>
@@ -400,6 +376,35 @@ if($res == true){
 <script src="backassets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
 <!-- AdminLTE App -->
 <script src="backassets/dist/js/adminlte.js"></script>
-
+<!-- DataTables  & Plugins -->
+<script src="backassets/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="backassets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="backassets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="backassets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="backassets/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="backassets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="backassets/plugins/jszip/jszip.min.js"></script>
+<script src="backassets/plugins/pdfmake/pdfmake.min.js"></script>
+<script src="backassets/plugins/pdfmake/vfs_fonts.js"></script>
+<script src="backassets/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="backassets/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="backassets/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+<script>
+  $(function () {
+    $("#example1").DataTable({
+      "responsive": true, "lengthChange": false, "autoWidth": false,
+      "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+    $('#example2').DataTable({
+      "paging": true,
+      "lengthChange": false,
+      "searching": true,
+      "ordering": true,
+      "info": true,
+      "autoWidth": false,
+      "responsive": true,
+    });
+  });
+</script>
 </body>
 </html>
